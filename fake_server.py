@@ -61,7 +61,7 @@ def run_server(host='127.0.0.1', port=80):
 @click.option('-fc', '--file_content', type=click.Path(exists=True), required=False)
 @click.option('-b', '--bind', type=click.STRING, required=False)
 def fake_server(text, file, file_content, bind):
-    if ':' in bind:
+    if bind and ':' in bind:
         host, port = bind.split(':')
     else:
         host = bind
