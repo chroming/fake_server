@@ -9,6 +9,8 @@ import gunicorn.app.base
 app = Flask(__name__)
 
 HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
+DEFAULT_HOST = '127.0.0.1'
+DEFAULT_PORT = '80'
 
 
 def number_of_workers():
@@ -45,9 +47,9 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def run_server(port=80):
+def run_server(host='127.0.0.1', port=80):
     options = {
-        'bind': '%s:%s' % ('127.0.0.1', port),
+        'bind': '%s:%s' % (host, port),
         'workers': number_of_workers(),
     }
     StandaloneApplication(app, options).run()
@@ -57,8 +59,15 @@ def run_server(port=80):
 @click.argument('text', required=False)
 @click.option('-f', '--file', type=click.Path(exists=True), required=False)
 @click.option('-fc', '--file_content', type=click.Path(exists=True), required=False)
-@click.option('-p', '--port', type=click.INT, required=False)
-def fake_server(text, file, file_content, port):
+@click.option('-b', '--bind', type=click.STRING, required=False)
+def fake_server(text, file, file_content, bind):
+    if ':' in bind:
+        host, port = bind.split(':')
+    else:
+        host = bind
+        port = DEFAULT_PORT
+    host = host or DEFAULT_HOST
+    port = port or DEFAULT_PORT
 
     @app.route('/', defaults={'path': ''}, methods=HTTP_METHODS)
     @app.route('/<path:path>')
@@ -73,8 +82,8 @@ def fake_server(text, file, file_content, port):
         else:
             return 'Success'
 
-    click.echo("Fake server started.")
-    run_server(port or 80)
+    click.echo("Fake server started at: {host}:{port}".format(host=host, port=port))
+    run_server(host, port)
 
 
 if __name__ == '__main__':

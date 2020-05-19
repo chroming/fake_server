@@ -10,16 +10,16 @@ Then you can access whatever route in 'http://127.0.0.1:5000', and then get resp
 
 all arguments:
 
-`python -m fake_server TEXT -f FILE_PATH -fc FILE_PATH -p 8000`
+`python -m fake_server TEXT -f FILE_PATH -fc FILE_PATH -b 127.0.0.1:80`
 
 **SERVER ARGUMENTS**
-+ -p --port: Server port, default 80.
++ -b --bind: Server bind host and port, default 127.0.0.1:80, if you what listen on all interface just use 0.0.0.0:80
 
 **RESPONSE ARGUMENTS**
-You can only choice one argument for response.
-+ TEXT: Return text, default Success.
-+ -f --file FILE_PATH: Return file as attachment.
-+ -fc --file_context FILE_PATH: Return file context.
+You can only choice one argument for response
++ TEXT: Return text, default Success
++ -f --file FILE_PATH: Return file as attachment
++ -fc --file_context FILE_PATH: Return file context
 
 
 ## Why you need this?
