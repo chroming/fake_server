@@ -1,12 +1,12 @@
 # fake_server
 
-A fake server than catch all route and response success message or whatever data you defined.
+A fake server than catch all path and response success message or whatever data you defined.
 
 ## Usage
 
 `python -m fake_server Success!`
 
-Then you can access whatever route in 'http://127.0.0.1:5000', and then get response text 'Success!'.
+Then you can access whatever path in 'http://127.0.0.1'(such as http://127.0.0.1/simple/a/b/c), and then get response text 'Success!'.
 
 all arguments:
 
