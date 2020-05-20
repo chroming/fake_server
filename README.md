@@ -21,12 +21,12 @@ You can only choice one argument for response
 
 + TEXT: Return text, default Success
 + -f --file FILE_PATH: Return file as attachment
-+ -fc --file_content FILE_PATH: Return file context
++ -fc --file_content FILE_PATH: Return file content
 
 
 ## Why you need this?
 
-When you notice some software send your private data to their server(like: http://data.old_server.com), and 
+When you notice some software send your private data to their server(like: http://data.old_server.com ), and 
 the software need success response from server(like: {"result": "success"}), what can you do?
 Now ,with fake_server, you can do like this:
 
