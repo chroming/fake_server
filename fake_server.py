@@ -19,24 +19,11 @@ def number_of_workers():
     return (multiprocessing.cpu_count() * 2) + 1
 
 
-def handler_app(environ, start_response):
-    response_body = b'Works fine'
-    status = '200 OK'
-
-    response_headers = [
-        ('Content-Type', 'text/plain'),
-    ]
-
-    start_response(status, response_headers)
-
-    return [response_body]
-
-
 class StandaloneApplication(gunicorn.app.base.BaseApplication):
 
-    def __init__(self, app, options=None):
+    def __init__(self, ap, options=None):
         self.options = options or {}
-        self.application = app
+        self.application = ap
         super().__init__()
 
     def load_config(self):
@@ -58,20 +45,21 @@ def run_server(host='127.0.0.1', port=80):
 
 
 @click.command()
-@click.argument('text', required=False)
+@click.option('-t', '--text', type=click.STRING, required=False, help='Return text')
 @click.option('-f', '--file', type=click.Path(exists=True), required=False, help='Return file as attachment')
 @click.option('-fc', '--file_content', type=click.Path(exists=True), required=False, help='Return file content')
 @click.option('-b', '--bind', type=click.STRING, required=False,
               help='''Server bind host and port, default 127.0.0.1:80, 
                    if you what listen on all interface just use 0.0.0.0:80''')
+@click.option('-p', '--port', type=click.INT, required=False, help='Server bind port, same as port in --bind')
 @click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
-def fake_server(text, file, file_content, bind):
+def fake_server(text, file, file_content, bind, port):
     if bind and ':' in bind:
         host, port = bind.split(':')
     else:
         host = bind
-        port = DEFAULT_PORT
+        port = port
     host = host or DEFAULT_HOST
     port = port or DEFAULT_PORT
 
