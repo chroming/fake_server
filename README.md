@@ -6,7 +6,7 @@ A fake server than catch all path and response success message or whatever data 
 
 `python -m fake_server Success!`
 
-Then you can access whatever path in 'http://127.0.0.1'(such as http://127.0.0.1/simple/a/b/c), and then get response text 'Success!'.
+Then you can access whatever path in 'http://127.0.0.1' (such as http://127.0.0.1/simple/a/b/c), and then get response text 'Success!'.
 
 all arguments:
 
@@ -16,10 +16,12 @@ all arguments:
 + -b --bind: Server bind host and port, default 127.0.0.1:80, if you what listen on all interface just use 0.0.0.0:80
 
 **RESPONSE ARGUMENTS**
+
 You can only choice one argument for response
+
 + TEXT: Return text, default Success
 + -f --file FILE_PATH: Return file as attachment
-+ -fc --file_context FILE_PATH: Return file context
++ -fc --file_content FILE_PATH: Return file context
 
 
 ## Why you need this?
@@ -29,9 +31,15 @@ the software need success response from server(like: {"result": "success"}), wha
 Now ,with fake_server, you can do like this:
 
 1. Add this line to your hosts file (Linux/macOS: /etc/hosts, Windows: C:\Windows\System32\Drivers\etc\hosts)
+
 `127.0.0.1 data.old_server.com`
 
 2. Start fake server:
 python -m fake_server '{"result": "success"}'
 
 Then all data send to data.old_server.com will now send to your own compute, and software will get normal response as before! 
+
+## TODO
+
++ To real command line tool as fake-server;
++ Support https
