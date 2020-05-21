@@ -12,7 +12,7 @@ VERSION = '0.1'
 
 HTTP_METHODS = ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH']
 DEFAULT_HOST = '127.0.0.1'
-DEFAULT_PORT = '80'
+DEFAULT_PORT = 80
 
 
 def number_of_workers():
@@ -36,11 +36,16 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def run_server(host='127.0.0.1', port=80):
+def run_server(host=DEFAULT_HOST, port=DEFAULT_PORT, https=True):
     options = {
         'bind': '%s:%s' % (host, port),
         'workers': number_of_workers(),
     }
+    if https:
+        options.update({
+            'certfile': 'server.crt',
+            'keyfile': 'server.key'
+    })
     StandaloneApplication(app, options).run()
 
 
@@ -52,9 +57,10 @@ def run_server(host='127.0.0.1', port=80):
               help='''Server bind host and port, default 127.0.0.1:80, 
                    if you what listen on all interface just use 0.0.0.0:80''')
 @click.option('-p', '--port', type=click.INT, required=False, help='Server bind port, same as port in --bind')
+@click.option('-s', '--https', is_flag=True, required=False, help='Use https or not')
 @click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
-def fake_server(text, file, file_content, bind, port):
+def fake_server(text, file, file_content, bind, port, https=True):
     if bind and ':' in bind:
         host, port = bind.split(':')
     else:
@@ -77,7 +83,7 @@ def fake_server(text, file, file_content, bind, port):
             return 'Success'
 
     click.echo("Fake server started at: {host}:{port}".format(host=host, port=port))
-    run_server(host, port)
+    run_server(host, port, https)
 
 
 if __name__ == '__main__':
