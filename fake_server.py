@@ -70,7 +70,7 @@ def fake_server(text, file, file_content, bind, port, https=True):
     port = port or DEFAULT_PORT
 
     @app.route('/', defaults={'path': ''}, methods=HTTP_METHODS)
-    @app.route('/<path:path>')
+    @app.route('/<path:path>', methods=HTTP_METHODS)
     def catch_all(path):
         print("Try to {method} path {path}".format(method=request.method, path=request.path))
         if text:
