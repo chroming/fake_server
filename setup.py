@@ -21,7 +21,7 @@ def read(f):
 
 setup(
     name='fake-server',
-    version='0.1',
+    version='0.2',
     author="chroming",
     author_email="chroming@live.com",
     url='https://github.com/chroming/fake_server',
