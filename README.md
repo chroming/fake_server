@@ -1,5 +1,9 @@
 A fake server than catch all path and response success message or whatever data you defined.
 
+## Install
+
+`pip install fake-server`
+
 ## Usage
 
 `fake-server -t Success!`
@@ -10,6 +14,8 @@ If you what to bind to https (normally with port 443), you should create local_s
 
 `openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout local_server.key -out local_server.crt -subj "/C=CN/ST=SH/L=SH/O=GH/OU=GH/CN=*"`
 
+And you can trust this self-signed certificate local_server.crt manually.
+
 All arguments:
 
 `fake-server -t TEXT [-f FILE_PATH| -fc FILE_PATH] -b 127.0.0.1:80 -s -sk /tmp/local_server.key -sc /tmp/local_server.key`
@@ -17,16 +23,16 @@ All arguments:
 **SERVER ARGUMENTS**
 
 + -b --bind *IP:PORT*: Server bind host and port, default 127.0.0.1:80, if you what listen on all interface just use 0.0.0.0:80
-+ -p --port *PORT*: Server bind port, same as port in --bind
++ -p --port *PORT*: Server bind port, same as port in --bind, default 80
 + -s --https: Server with https or not
-+ -sk --server_key *FILE_PATH*: Server key file path
-+ -sc --server_crt *FILE_PATH*: Server cert file path
++ -sk --server_key *FILE_PATH*: Server key file path, default ./local_server.key
++ -sc --server_crt *FILE_PATH*: Server cert file path, default ./local_server.crt
 
 **RESPONSE ARGUMENTS**
 
 You can only choice one argument for response
 
-+ -t --text *TEXT*: Return text, default Success
++ -t --text *TEXT*: Return text, default 'Success'
 + -f --file *FILE_PATH*: Return file as attachment
 + -fc --file_content *FILE_PATH*: Return file content
 

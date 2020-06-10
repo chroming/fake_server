@@ -64,16 +64,22 @@ def run_server(host=DEFAULT_HOST, port=DEFAULT_PORT, https=True, server_key=DEFA
 
 
 @click.command()
-@click.option('-t', '--text', type=click.STRING, required=False, help='Return text')
-@click.option('-f', '--file', type=click.Path(exists=True), required=False, help='Return file as attachment')
-@click.option('-fc', '--file_content', type=click.Path(exists=True), required=False, help='Return file content')
+@click.option('-t', '--text', type=click.STRING, required=False,
+              help='Return text, default "Success"')
+@click.option('-f', '--file', type=click.Path(exists=True), required=False,
+              help='Return file as attachment')
+@click.option('-fc', '--file_content', type=click.Path(exists=True), required=False,
+              help='Return file content')
 @click.option('-b', '--bind', type=click.STRING, required=False,
               help='''Server bind host and port, default 127.0.0.1:80, 
                    if you what listen on all interface just use 0.0.0.0:80''')
-@click.option('-p', '--port', type=click.INT, required=False, help='Server bind port, same as port in --bind')
+@click.option('-p', '--port', type=click.INT, required=False,
+              help='Server bind port, same as port in --bind, default 80')
 @click.option('-s', '--https', is_flag=True, required=False, help='Use https or not')
-@click.option('-sk', '--server_key', type=click.STRING, required=False, help='Server key file path')
-@click.option('-sc', '--server_crt', type=click.STRING, required=False, help='Server cert file path')
+@click.option('-sk', '--server_key', type=click.STRING, required=False,
+              help='Server key file path, default ./local_server.key')
+@click.option('-sc', '--server_crt', type=click.STRING, required=False,
+              help='Server cert file path, default ./local_server.key')
 @click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
 def fake_server(text, file, file_content, bind, port, server_key, server_crt, https=True):
