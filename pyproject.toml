@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "fake-server"
+version = "0.2.2"
+description = "A fake server than catch all path and response success message or whatever data you defined."
+authors = ["chroming <chroming@live.com>"]
+
+readme = "README.md"
+repository = "https://github.com/chroming/fake_server"
+license = "MIT"
+documentation = "https://github.com/chroming/fake_server/blob/master/README.md"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+flask = "^1.1.2"
+click = "^7.1.2"
+gunicorn = "^20.0.4"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
