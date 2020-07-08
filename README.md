@@ -52,10 +52,14 @@ fake-server '{"result": "success"}'
 
 Then all data send to data.old_server.com will now send to your own compute, and software will get normal response as before! 
 
-### Run with `[ERROR] Retrying in 1 second in...` in my macOS ?
+### Run with 'sock.bind(binding) \n [ERROR 13]  Permission denied...' on my mac ?
 
 For macOS user who what to bind to port less than 1024(include default http 80 and https 443 port)
 
 macOS has a limit that you can't bind to port less than 1024 without sudo,
 
 if macOS version >= 10.14, you can bind to 0.0.0.0 without root, so fake-server will bind to 0.0.0.0 in macOS by default.
+
+### Run with 'sock.bind(binding) \n OSError: [Errno 48] Address already in use' ?
+
+It means the host:port is bind by other software.

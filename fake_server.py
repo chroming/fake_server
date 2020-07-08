@@ -1,16 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import asyncio
 import platform
 import multiprocessing
 
 
 import click
 from loguru import logger
-from flask import Flask, request, send_file
-import gunicorn.app.base
+from quart import Quart, request, send_file
+from hypercorn.config import Config
+from hypercorn.asyncio import serve
 
-app = Flask(__name__)
+
+app = Quart(__name__)
 
 VERSION = '0.2'
 
@@ -37,34 +40,10 @@ DEFAULT_SERVER_CRT = 'local_server.crt'
 number_of_workers = (multiprocessing.cpu_count() * 2) + 1
 
 
-class StandaloneApplication(gunicorn.app.base.BaseApplication):
-
-    def __init__(self, ap, options=None):
-        self.options = options or {}
-        self.application = ap
-        super().__init__()
-
-    def load_config(self):
-        config = {key: value for key, value in self.options.items()
-                  if key in self.cfg.settings and value is not None}
-        for key, value in config.items():
-            self.cfg.set(key.lower(), value)
-
-    def load(self):
-        return self.application
-
-
 def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key=DEFAULT_SERVER_KEY, server_crt=DEFAULT_SERVER_CRT):
-    options = {
-        'bind': '%s:%s' % (host, port),
-        'workers': number_of_workers,
-    }
-    if https:
-        options.update({
-            'certfile': server_crt,
-            'keyfile': server_key
-    })
-    StandaloneApplication(app, options).run()
+    config = Config()
+    config.bind = ["%s:%s" % (host, port)]
+    asyncio.run(serve(app, config))
 
 
 @click.command()
@@ -101,20 +80,20 @@ def fake_server(text, file, file_content, bind, port, server_key, server_crt, ht
 
     @app.route('/', defaults={'path': ''}, methods=methods)
     @app.route('/<path:path>', methods=methods)
-    def catch_all(path):
+    async def catch_all(path):
         logger.remove()
         logger.add(sys.stderr, level="DEBUG" if debug else "INFO")
         logger.info("Try to {method} path {path}".format(method=request.method, path=request.path))
         logger.debug("Full path: {full_path}".format(full_path=request.full_path))
         logger.debug("Header: \n{header}".format(header=request.headers))
-        logger.debug("Data: \n{data}".format(data=request.data))
+        logger.debug("Data: \n{data}".format(data=await request.data))
 
         if text:
             return text
         elif file:
-            return send_file(file, as_attachment=True)
+            return await send_file(file, as_attachment=True)
         elif file_content:
-            return send_file(file_content)
+            return await send_file(file_content)
         else:
             return 'Success'
 
