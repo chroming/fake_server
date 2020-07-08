@@ -48,9 +48,13 @@ Now ,with fake-server, you can do like this:
 `127.0.0.1 data.old_server.com`
 
 2. Start fake server:
-fake-server '{"result": "success"}'
+fake-server -t '{"result": "success"}'
 
 Then all data send to data.old_server.com will now send to your own compute, and software will get normal response as before! 
+
+Or you what to know the data a client send to server, you can add --debug flag:
+
+`fake-server -t '{"result": "success"}' --debug`
 
 ### Run with 'sock.bind(binding) \n [ERROR 13]  Permission denied...' on my mac ?
 
