@@ -25,7 +25,8 @@ system = get_system()
 
 HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}
 DEFAULT_HOST = '0.0.0.0' if system == 'macOS' else '127.0.0.1'
-DEFAULT_PORT = 8000
+DEFAULT_HTTP_PORT = 80
+DEFAULT_HTTPS_PORT = 443
 DEFAULT_SERVER_KEY = 'local_server.key'
 DEFAULT_SERVER_CRT = 'local_server.crt'
 
@@ -50,7 +51,7 @@ class StandaloneApplication(gunicorn.app.base.BaseApplication):
         return self.application
 
 
-def run_server(host=DEFAULT_HOST, port=DEFAULT_PORT, https=True, server_key=DEFAULT_SERVER_KEY, server_crt=DEFAULT_SERVER_CRT):
+def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key=DEFAULT_SERVER_KEY, server_crt=DEFAULT_SERVER_CRT):
     options = {
         'bind': '%s:%s' % (host, port),
         'workers': number_of_workers,
@@ -71,10 +72,12 @@ def run_server(host=DEFAULT_HOST, port=DEFAULT_PORT, https=True, server_key=DEFA
 @click.option('-fc', '--file_content', type=click.Path(exists=True), required=False,
               help='Return file content')
 @click.option('-b', '--bind', type=click.STRING, required=False,
-              help='''Server bind host and port, default 127.0.0.1:80, 
-                   if you what listen on all interface just use 0.0.0.0:80''')
+              help='''Server bind host and port, default {host}:{http_port} or {host}:{https_port}(for https), 
+                   if you what listen on all interface just use 0.0.0.0:80'''.format(
+                  host=DEFAULT_HOST, http_port=DEFAULT_HTTP_PORT, https_port=DEFAULT_HTTPS_PORT))
 @click.option('-p', '--port', type=click.INT, required=False,
-              help='Server bind port, same as port in --bind, default 80')
+              help='Server bind port, same as port in --bind, default %s or %s(for https)'
+                   % (DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT))
 @click.option('-s', '--https', is_flag=True, required=False, help='Use https or not')
 @click.option('-sk', '--server_key', type=click.STRING, required=False,
               help='Server key file path, default ./local_server.key')
@@ -89,7 +92,7 @@ def fake_server(text, file, file_content, bind, port, server_key, server_crt, ht
         host = bind
         port = port
     host = host or DEFAULT_HOST
-    port = port or DEFAULT_PORT
+    port = port or (DEFAULT_HTTPS_PORT if https else DEFAULT_HTTP_PORT)
     methods = HTTP_METHODS
 
     @app.route('/', defaults={'path': ''}, methods=methods)
