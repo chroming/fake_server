@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
-import multiprocessing
+import sys
 import platform
+import multiprocessing
+
 
 import click
+from loguru import logger
 from flask import Flask, request, send_file
 import gunicorn.app.base
 
@@ -83,9 +86,10 @@ def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key
               help='Server key file path, default ./local_server.key')
 @click.option('-sc', '--server_crt', type=click.STRING, required=False,
               help='Server cert file path, default ./local_server.key')
+@click.option('--debug', is_flag=True, required=False, help='Output all request data for debug')
 @click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
-def fake_server(text, file, file_content, bind, port, server_key, server_crt, https=True):
+def fake_server(text, file, file_content, bind, port, server_key, server_crt, https=True, debug=False):
     if bind and ':' in bind:
         host, port = bind.split(':')
     else:
@@ -98,7 +102,13 @@ def fake_server(text, file, file_content, bind, port, server_key, server_crt, ht
     @app.route('/', defaults={'path': ''}, methods=methods)
     @app.route('/<path:path>', methods=methods)
     def catch_all(path):
-        print("Try to {method} path {path}".format(method=request.method, path=request.path))
+        logger.remove()
+        logger.add(sys.stderr, level="DEBUG" if debug else "INFO")
+        logger.info("Try to {method} path {path}".format(method=request.method, path=request.path))
+        logger.debug("Full path: {full_path}".format(full_path=request.full_path))
+        logger.debug("Header: \n{header}".format(header=request.headers))
+        logger.debug("Data: \n{data}".format(data=request.data))
+
         if text:
             return text
         elif file:
