@@ -37,13 +37,43 @@ DEFAULT_SERVER_KEY = 'local_server.key'
 DEFAULT_SERVER_CRT = 'local_server.crt'
 
 
-number_of_workers = (multiprocessing.cpu_count() * 2) + 1
-
 
 def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key=DEFAULT_SERVER_KEY, server_crt=DEFAULT_SERVER_CRT):
     config = Config()
     config.bind = ["%s:%s" % (host, port)]
     asyncio.run(serve(app, config))
+
+
+class Hosts(object):
+
+    @classmethod
+    def add(cls, domain, ip):
+        """Add new line to hosts file"""
+
+    @classmethod
+    def remove(cls, domain, ip):
+        """Remove line from hosts file"""
+
+
+
+class HostsLine(object):
+    def __init__(self, domain, ip):
+        self.domain = domain
+        self.ip = ip
+
+    def add(self):
+        logger.info("Redirect {domain} to {ip}".format(domain=self.domain, ip=self.ip))
+        return Hosts.add(self.domain, self.ip)
+
+    def remove(self):
+        return Hosts.remove(self.domain, self.ip)
+
+    def __enter__(self):
+        self.add()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.remove()
+
 
 
 @click.command()
@@ -65,10 +95,11 @@ def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key
               help='Server key file path, default ./local_server.key')
 @click.option('-sc', '--server_crt', type=click.STRING, required=False,
               help='Server cert file path, default ./local_server.key')
+@click.option('--domain', required=False, help='Auto redirect domain to bind ip')
 @click.option('--debug', is_flag=True, required=False, help='Output all request data for debug')
 @click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
-def fake_server(text, file, file_content, bind, port, server_key, server_crt, https=True, debug=False):
+def fake_server(text, file, file_content, bind, port, server_key, server_crt, domain, https=True, debug=False):
     if bind and ':' in bind:
         host, port = bind.split(':')
     else:
@@ -98,7 +129,12 @@ def fake_server(text, file, file_content, bind, port, server_key, server_crt, ht
             return 'Success'
 
     click.echo("Fake server started at: {host}:{port}".format(host=host, port=port))
-    run_server(host, port, https, server_key, server_crt)
+    if domain:
+        redirect_host = '127.0.0.1' if host == '0.0.0.0' else host
+        with HostsLine(domain, redirect_host):
+            run_server(host, port, https, server_key, server_crt)
+    else:
+        run_server(host, port, https, server_key, server_crt)
 
 
 if __name__ == '__main__':
