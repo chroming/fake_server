@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import os
 import sys
+import shutil
 import asyncio
 import platform
-import multiprocessing
 
 
 import click
@@ -19,23 +20,19 @@ VERSION = '0.2'
 
 
 def get_system():
-    pf = platform.platform()
-    if pf.startswith('Darwin'):
-        return 'macOS'
-    else:
-        return 'Other'
+    return platform.system()
 
 
 system = get_system()
 
 
 HTTP_METHODS = {'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'CONNECT', 'OPTIONS', 'TRACE', 'PATCH'}
-DEFAULT_HOST = '0.0.0.0' if system == 'macOS' else '127.0.0.1'
+DEFAULT_HOST = '0.0.0.0' if system == 'Darwin' else '127.0.0.1'
 DEFAULT_HTTP_PORT = 80
 DEFAULT_HTTPS_PORT = 443
 DEFAULT_SERVER_KEY = 'local_server.key'
 DEFAULT_SERVER_CRT = 'local_server.crt'
-
+HOSTS_FILE = os.path.join(os.environ['SYSTEMROOT'], 'system32/drivers/etc/hosts') if system == 'Windows' else '/etc/hosts'
 
 
 def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key=DEFAULT_SERVER_KEY, server_crt=DEFAULT_SERVER_CRT):
@@ -44,36 +41,45 @@ def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key
     asyncio.run(serve(app, config))
 
 
-class Hosts(object):
-
-    @classmethod
-    def add(cls, domain, ip):
-        """Add new line to hosts file"""
-
-    @classmethod
-    def remove(cls, domain, ip):
-        """Remove line from hosts file"""
-
-
-
 class HostsLine(object):
     def __init__(self, domain, ip):
         self.domain = domain
         self.ip = ip
+        self.create(domain, ip)
 
-    def add(self):
-        logger.info("Redirect {domain} to {ip}".format(domain=self.domain, ip=self.ip))
-        return Hosts.add(self.domain, self.ip)
+    @classmethod
+    def create(cls, domain, ip):
+        """Add new line to hosts file"""
+        logger.info("Redirect {domain} to {ip}".format(domain=domain, ip=ip))
+        cls.backup()
+        with open(HOSTS_FILE, 'a') as f:
+            f.write('{ip} {domain}'.format(domain=domain, ip=ip))
 
-    def remove(self):
-        return Hosts.remove(self.domain, self.ip)
+    @classmethod
+    def backup(cls):
+        bk_file = "%s.fsbak" % HOSTS_FILE
+        logger.info("Backup hosts to %s" % bk_file)
+        logger.warning("Attention! Don't modify hosts file while fake_server is running!")
+        shutil.move(HOSTS_FILE, bk_file)
+        shutil.copy2(bk_file, HOSTS_FILE)
+
+    @classmethod
+    def restore(cls):
+        bk_file = "%s.fsbak" % HOSTS_FILE
+        logger.info("Restore hosts file")
+        os.remove(HOSTS_FILE)
+        shutil.move(bk_file, HOSTS_FILE)
+
+    @classmethod
+    def delete(cls, domain, ip):
+        """Remove line from hosts file"""
+        pass
 
     def __enter__(self):
-        self.add()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.remove()
-
+        self.restore()
 
 
 @click.command()
