@@ -38,6 +38,9 @@ HOSTS_FILE = os.path.join(os.environ['SYSTEMROOT'], 'system32/drivers/etc/hosts'
 def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key=DEFAULT_SERVER_KEY, server_crt=DEFAULT_SERVER_CRT):
     config = Config()
     config.bind = ["%s:%s" % (host, port)]
+    if https:
+        config.certfile = server_crt or DEFAULT_SERVER_KEY
+        config.keyfile = server_key or DEFAULT_SERVER_CRT
     asyncio.run(serve(app, config))
 
 
@@ -134,7 +137,7 @@ def fake_server(text, file, file_content, bind, port, server_key, server_crt, do
         else:
             return 'Success'
 
-    click.echo("Fake server started at: {host}:{port}".format(host=host, port=port))
+    click.echo("Fake server started at: http{s}://{host}:{port}".format(s='s' if https else '', host=host, port=port))
     if domain:
         redirect_host = '127.0.0.1' if host == '0.0.0.0' else host
         with HostsLine(domain, redirect_host):
