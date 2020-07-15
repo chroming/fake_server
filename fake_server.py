@@ -16,7 +16,7 @@ from hypercorn.asyncio import serve
 
 app = Quart(__name__)
 
-VERSION = '0.2'
+VERSION = '0.3.0'
 
 
 def get_system():
