@@ -21,7 +21,7 @@ def read(f):
 
 setup(
     name='fake-server',
-    version='0.2',
+    version='0.3.1',
     author="chroming",
     author_email="chroming@live.com",
     url='https://github.com/chroming/fake_server',
@@ -31,8 +31,6 @@ setup(
     py_modules=['fake_server'],
     install_requires=[
         'click==7.1.2',
-        'flask==1.1.2',
-        'gunicorn'
     ],
     entry_points='''
         [console_scripts]
