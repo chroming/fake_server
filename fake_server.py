@@ -6,10 +6,9 @@ import shutil
 import asyncio
 import platform
 
-
 import click
 from loguru import logger
-from quart import Quart, request, send_file
+from quart import Quart, request, send_file, Response
 from hypercorn.config import Config
 from hypercorn.asyncio import serve
 
@@ -105,11 +104,14 @@ class HostsLine(object):
               help='Server key file path, default ./%s' % DEFAULT_SERVER_KEY)
 @click.option('-sc', '--server_crt', type=click.STRING, required=False,
               help='Server cert file path, default ./%s' % DEFAULT_SERVER_CRT)
+@click.option('--status', type=click.INT, required=False, help='Response status code, default 200.')
+@click.option('--mime', type=click.STRING, required=False, help='Response mimetype.')
+@click.option('--header', type=click.STRING, required=False, multiple=True, help='Response header, can use multi times.')
 @click.option('--domain', required=False, help='Auto redirect domain to bind ip')
 @click.option('--debug', is_flag=True, required=False, help='Output all request data for debug')
 @click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
-def fake_server(text, file, file_content, bind, port, server_key, server_crt, domain, https=True, debug=False):
+def fake_server(text, file, file_content, bind, port, server_key, server_crt, domain, status, mime, header, https=True, debug=False):
     if bind and ':' in bind:
         host, port = bind.split(':')
     else:
@@ -130,13 +132,26 @@ def fake_server(text, file, file_content, bind, port, server_key, server_crt, do
         logger.debug("Data: \n{data}".format(data=await request.data))
 
         if text:
-            return text
+            resp = Response(text)
         elif file:
-            return await send_file(file, as_attachment=True)
+            resp = await send_file(file, as_attachment=True)
         elif file_content:
-            return await send_file(file_content)
+            resp = await send_file(file_content)
         else:
-            return DEFAULT_SUCCESS_TEXT
+            resp = Response(DEFAULT_SUCCESS_TEXT)
+
+        if status:
+            resp.status_code = status
+
+        if mime:
+            resp.mimetype = mime
+
+        if header:
+            resp.headers.clear()
+            for he in header:
+                resp.headers.add(*he.split(":"))
+
+        return resp
 
     click.echo("Fake server started at: http{s}://{host}:{port}".format(s='s' if https else '', host=host, port=port))
     if domain:
