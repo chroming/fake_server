@@ -34,6 +34,11 @@ DEFAULT_SERVER_CRT = 'local_server.crt'
 DEFAULT_SUCCESS_TEXT = 'Success'
 HOSTS_FILE = os.path.join(os.environ['SYSTEMROOT'], 'system32/drivers/etc/hosts') if system == 'Windows' else '/etc/hosts'
 
+client_responses = {
+    "127.0.0.1": {"text": "success 127"},
+    "*": {"text": "success *"}
+}
+
 
 def run_server(host=DEFAULT_HOST, port=DEFAULT_HTTP_PORT, https=True, server_key=DEFAULT_SERVER_KEY, server_crt=DEFAULT_SERVER_CRT):
     config = Config()
@@ -109,9 +114,11 @@ class HostsLine(object):
 @click.option('--header', type=click.STRING, required=False, multiple=True, help='Response header, can use multi times.')
 @click.option('--domain', required=False, help='Auto redirect domain to bind ip')
 @click.option('--debug', is_flag=True, required=False, help='Output all request data for debug')
+@click.option('--dynamic', is_flag=True, required=False)
 @click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
-def fake_server(text, file, file_content, bind, port, server_key, server_crt, domain, status, mime, header, https=True, debug=False):
+def fake_server(text, file, file_content, status, mime, header, bind, port, server_key, server_crt, domain, https=True, debug=False, dynamic=False):
+
     if bind and ':' in bind:
         host, port = bind.split(':')
     else:
@@ -124,9 +131,21 @@ def fake_server(text, file, file_content, bind, port, server_key, server_crt, do
     @app.route('/', defaults={'path': ''}, methods=methods)
     @app.route('/<path:path>', methods=methods)
     async def catch_all(path):
+        client = request.remote_addr
+        if dynamic:
+            client_key = client if client in client_responses else "*"
+            dynamic_args = client_responses.get(client_key)
+
+            text = dynamic_args.get("text")
+            file = dynamic_args.get("file")
+            file_content = dynamic_args.get("file_content")
+            status = dynamic_args.get("status")
+            mime = dynamic_args.get("mime")
+            header = dynamic_args.get("header")
+
         logger.remove()
         logger.add(sys.stderr, level="DEBUG" if debug else "INFO")
-        logger.info("Try to {method} path {path}".format(method=request.method, path=request.path))
+        logger.info("Client {client} try to {method} path {path}".format(client=client, method=request.method, path=request.path))
         logger.debug("Full path: {full_path}".format(full_path=request.full_path))
         logger.debug("Header: \n{header}".format(header=request.headers))
         logger.debug("Data: \n{data}".format(data=await request.data))
