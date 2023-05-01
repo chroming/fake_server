@@ -31,7 +31,7 @@ setup(
     py_modules=['fake_server'],
     install_requires=[
         'click==7.1.2',
-        'flask==1.1.2',
+        'flask==2.3.2',
         'gunicorn'
     ],
     entry_points='''
